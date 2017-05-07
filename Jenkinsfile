@@ -21,7 +21,7 @@ node {
     }
 
     stage('Push ansible-deployd Docker image') {
-      docker.withRegistry('tgbyte/ansible-deployd', 'docker-hub') {
+      docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
         image.push()
       }
     }
