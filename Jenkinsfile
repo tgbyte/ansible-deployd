@@ -10,8 +10,8 @@ node {
       def golang = docker.image('golang:1.8')
       golang.pull()
       golang.inside('-e GIT_COMMITTER_NAME=Anonymous -e GIT_COMMITTER_EMAIL=me@privacy.net') {
-        sh 'go get -u github.com/gorilla/mux github.com/caarlos0/env'
-        sh 'go build -v -o out/deployd'
+        sh '/usr/local/go/bin/go get -u github.com/gorilla/mux github.com/caarlos0/env'
+        sh '/usr/local/go/bin/go build -v -o out/deployd'
       }
     }
 
