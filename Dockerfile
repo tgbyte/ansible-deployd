@@ -7,7 +7,8 @@ RUN set -x \
   && apt-get clean -q \
   && rm -rf /var/lib/apt/lists/* \
   && mkdir -p /home/ansible \
-  && adduser --uid 500 --disabled-login --gecos "Ansible" --no-create-home --home /home/ansible ansible
+  && adduser --uid 500 --disabled-login --gecos "Ansible" --no-create-home --home /home/ansible ansible \
+  && chown ansible.ansible /home/ansible
 
 COPY out/deployd /usr/local/bin/deployd
 
