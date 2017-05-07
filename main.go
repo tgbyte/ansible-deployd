@@ -57,7 +57,7 @@ func DeployHandler(w http.ResponseWriter, r *http.Request) {
 		apiTokenHeader := r.Header["X-Api-Token"]
 		if len(apiTokenHeader) != 1 || apiTokenHeader[0] != config.ApiToken {
 			w.WriteHeader(http.StatusForbidden)
-			log.Print("X-Api-Token header does not match")
+			log.Printf("X-Api-Token %+v header does not match", apiTokenHeader)
 			return
 		}
 	}
