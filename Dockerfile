@@ -13,4 +13,6 @@ COPY out/deployd /usr/local/bin/deployd
 
 USER ansible
 
+EXPOSE 8000
+
 ENTRYPOINT ["/usr/local/bin/deployd"]

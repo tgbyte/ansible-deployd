@@ -15,6 +15,7 @@ type Config struct {
 	Limit     []string `env:"LIMIT" envSeparator:","`
 	Playbooks []string `env:"PLAYBOOKS" envSeparator:","`
 	WorkDir   string   `env:"WORK_DIR" envDefault:"/ansible"`
+	ApiToken  string   `env:"API_TOKEN"`
 }
 
 var config Config
@@ -50,6 +51,15 @@ func DeployHandler(w http.ResponseWriter, r *http.Request) {
 	if ! contains(config.Playbooks, playbook) {
 		w.WriteHeader(http.StatusForbidden)
 		return
+	}
+
+	if config.ApiToken != "" {
+		apiTokenHeader := r.Header["X-Api-Token"]
+		if len(apiTokenHeader) != 1 || apiTokenHeader[0] != config.ApiToken {
+			w.WriteHeader(http.StatusForbidden)
+			log.Print("X-Api-Token header does not match")
+			return
+		}
 	}
 
 	out, err := gitPull()
