@@ -11,6 +11,8 @@ RUN set -x \
 
 COPY out/deployd /usr/local/bin/deployd
 
+ENV HOME=/home/ansible
+
 USER ansible
 
 EXPOSE 8000
