@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 
 	"github.com/caarlos0/env"
 	"github.com/gorilla/mux"
@@ -42,15 +43,24 @@ func DeployHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	limit := vars["limit"]
-	if ! contains(config.Limit, limit) {
+	if !contains(config.Limit, limit) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	playbook := vars["playbook"]
-	if ! contains(config.Playbooks, playbook) {
+	if !contains(config.Playbooks, playbook) {
 		w.WriteHeader(http.StatusForbidden)
 		return
+	}
+
+	version := r.URL.Query().Get("version")
+	if version != "" {
+		match, _ := regexp.MatchString("^[a-zA-Z0-9._-]+$", version)
+		if !match {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
 	}
 
 	if config.ApiToken != "" {
@@ -69,7 +79,7 @@ func DeployHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err = runAnsible(limit, playbook)
+	out, err = runAnsible(limit, playbook, version)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Ansible exited with error: %s\n\n%s", err, out)
@@ -86,13 +96,23 @@ func gitPull() (string, error) {
 	return runCommand("git", "pull")
 }
 
-func runAnsible(limit string, playbook string) (string, error) {
-	log.Printf("Deploying %s to %s", playbook, limit)
-	return runCommand("ansible-playbook", "-e", "docker_container_state=deploy", "--limit", limit, "playbooks/"+playbook+".yml")
+func runAnsible(limit string, playbook string, version string) (string, error) {
+	var args []string
+	log.Printf("Deploying %s to %s version %s", playbook, limit, version)
+	args = append(args, "-e")
+	args = append(args, "docker_container_state=deploy")
+	if version != "" {
+		args = append(args, "-e")
+		args = append(args, playbook+"_version="+version)
+	}
+	args = append(args, "--limit")
+	args = append(args, limit)
+	args = append(args, "playbooks/"+playbook+".yml")
+	return runCommand("ansible-playbook", args...)
 }
 
-func runCommand(name string, arg ...string) (string, error) {
-	cmd := exec.Command(name, arg...)
+func runCommand(name string, args ...string) (string, error) {
+	cmd := exec.Command(name, args...)
 	cmd.Dir = config.WorkDir
 	out, err := cmd.CombinedOutput()
 
